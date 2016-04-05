@@ -114,7 +114,7 @@ public class SimpleDhtProvider extends ContentProvider {
 
         Log.d(TAG, "delete: uri: " + uri + " selection: " + selection);
 
-        if (selection.equalsIgnoreCase("*") || selection.equalsIgnoreCase("@"))
+        if (STAR_SIGN.equals(selection) || AT_SIGN.equals(selection))
             database.execSQL("DELETE FROM " + KEYVALUE_TABLE_NAME);
         else
             database.execSQL("DELETE FROM " + KEYVALUE_TABLE_NAME + " WHERE key=" + "'" + selection + "'");
@@ -228,38 +228,6 @@ public class SimpleDhtProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        /*Log.d(TAG, "query: " + "Uri: " + uri + ", " + "selection: " + selection);
-        SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-        queryBuilder.setTables(KEYVALUE_TABLE_NAME);
-
-        if (selection.equalsIgnoreCase("*") || selection.equalsIgnoreCase("@"))
-            selection = "1==1";
-        else
-            selection = "key=" + "'" + selection + "'"; // appending the key sent to the Where clause
-
-        if (selection.equals("*")) {
-            try {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put(KEY,selection);
-                jsonObject.put(MSG_REQUEST_TYPE,QUERY_ALL);
-                jsonObject.put(FORWARDING_PORT, succPort);
-                String s = new ClientTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, jsonObject.toString()).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        Cursor cursor = queryBuilder.query(database, projection, selection, selectionArgs, null, null, sortOrder);
-        if (getContext() != null) {
-            cursor.setNotificationUri(getContext().getContentResolver(), uri);
-        }
-        Log.d(TAG, "query: cursor: " + cursor);
-        return cursor;
-        */
 
         if(AT_SIGN.equals(selection)) {
             Log.d(TAG, "query: Reached AT_SIGN: "+serverPort);
@@ -279,7 +247,7 @@ public class SimpleDhtProvider extends ContentProvider {
                 String s = a.get();
                 Log.d(TAG, "query: "+ a.getStatus());
                 Log.d(TAG, "query: a.get(): "+s);
-                return JsonArr2MatrixCursor(new JSONArray(s));
+                return jsonArr2MatrixCursor(new JSONArray(s));
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -303,7 +271,7 @@ public class SimpleDhtProvider extends ContentProvider {
                 String s = a.get();
                 Log.d(TAG, "query: "+ a.getStatus());
                 Log.d(TAG, "query: a.get(): "+s);
-                return JsonArr2MatrixCursor(new JSONArray(s));
+                return jsonArr2MatrixCursor(new JSONArray(s));
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -392,7 +360,7 @@ public class SimpleDhtProvider extends ContentProvider {
         return String.valueOf(Integer.parseInt(s) / 2);
     }
 
-    private MatrixCursor JsonArr2MatrixCursor(JSONArray jsonArray){
+    private MatrixCursor jsonArr2MatrixCursor(JSONArray jsonArray){
         String[] columnNames = {"key","value"};
         MatrixCursor mc = new MatrixCursor(columnNames);
 
@@ -523,8 +491,6 @@ public class SimpleDhtProvider extends ContentProvider {
                         contentValues.put("key",msgJsonObj.getString(KEY));
                         contentValues.put("value",msgJsonObj.getString(VALUE));
 
-                        //String providerUri = "content://edu.buffalo.cse.cse486586.simpledht.provider";
-                        //insert(Uri.parse(providerUri), contentValues);
                         insert(Uri.parse(PROVIDER_URI), contentValues);
                     } else if(QUERY_ALL.equals(msg_request_type)){
                         Log.d(TAG, "doInBackground: ServerTask: "+serverPort);
@@ -641,7 +607,6 @@ public class SimpleDhtProvider extends ContentProvider {
 
         @Override
         protected String doInBackground(String... msgs) {
-            //Log.d(TAG, "doInBackground: msgs: " + Arrays.toString(msgs));
             String m = msgs[0];
             Log.d(TAG, "doInBackground: This is client " + m);
             try {
@@ -668,10 +633,8 @@ public class SimpleDhtProvider extends ContentProvider {
                     Log.d(TAG, "doInBackground: Sending REQUEST_TYPE: " + request_type + " to: " + jsonObject.getString(FORWARDING_PORT));
 
                     Socket socket = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}), Integer.parseInt(jsonObject.getString(FORWARDING_PORT)));
-                    //BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                     out.println(m);
-                    //out.close();
 
                     Log.d(TAG, "doInBackground: Writing "+m+" to "+jsonObject.getString(FORWARDING_PORT));
 
@@ -698,10 +661,8 @@ public class SimpleDhtProvider extends ContentProvider {
                     Cursor cursor = myQuery(Uri.parse(PROVIDER_URI),new JSONObject(m).getString(KEY));
                     if(cursor.getCount() <= 0) {
                         Socket socket = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}), Integer.parseInt(jsonObject.getString(FORWARDING_PORT)));
-                        //BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                         out.println(m);
-                        //out.close();
 
                         Log.d(TAG, "doInBackground: Writing " + m + " to " + jsonObject.getString(FORWARDING_PORT));
 
