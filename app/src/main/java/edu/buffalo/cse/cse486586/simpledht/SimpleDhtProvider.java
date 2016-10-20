@@ -53,8 +53,6 @@ public class SimpleDhtProvider extends ContentProvider {
     private static final String UPDATE_SUCC = "UPDATE_SUCC";
     private static final String NEXT_NODE_JOIN = "NEXT_NODE_JOIN";
     private static final String FORWARDING_PORT = "FORWARDING_PORT";
-    private static final String MIN_HASH = "0000000000000000000000000000000000000000";
-    private static final String MAX_HASH = "ffffffffffffffffffffffffffffffffffffffff";
     private static final String KEY = "key";
     private static final String VALUE = "value";
     private static final String STAR_SIGN = "*";
@@ -141,9 +139,16 @@ public class SimpleDhtProvider extends ContentProvider {
             String hPredID = genHash(getIDfromPort(predPort));
             String hServerID = genHash(getIDfromPort(serverPort));
 
+
+
+//            if (hPredID.equals(hServerID)||(hKey.compareTo(hPredID) > 0 && hKey.compareTo(hServerID) < 0)
+//                    || (hKey.compareTo(hPredID) > 0 && hKey.compareTo(MAX_HASH) <= 0 && hPredID.compareTo(hServerID) > 0)
+//                    || (hKey.compareTo(MIN_HASH) >= 0 && hKey.compareTo(hServerID) < 0) && hPredID.compareTo(hServerID) > 0){
+
             if (hPredID.equals(hServerID)||(hKey.compareTo(hPredID) > 0 && hKey.compareTo(hServerID) < 0)
-                    || (hKey.compareTo(hPredID) > 0 && hKey.compareTo(MAX_HASH) <= 0 && hPredID.compareTo(hServerID) > 0)
-                    || (hKey.compareTo(MIN_HASH) >= 0 && hKey.compareTo(hServerID) < 0) && hPredID.compareTo(hServerID) > 0){
+                    || (hPredID.compareTo(hServerID) > 0 && (hKey.compareTo(hPredID) > 0 ||hKey.compareTo(hServerID) < 0))){
+
+                Log.d(TAG, "insert: Suhas");
 
                 Log.d(TAG, "insert: Should be stored in current AVD");
 
@@ -429,10 +434,10 @@ public class SimpleDhtProvider extends ContentProvider {
                             publishProgress(jsonObject.toString());
 
                         } else if ((hSenderID.compareTo(hPredID) > 0 && hSenderID.compareTo(hServerID) < 0)
-                                  || (hSenderID.compareTo(hPredID) > 0 && hSenderID.compareTo(MAX_HASH) <= 0 && hPredID.compareTo(hServerID) > 0)
-                                  || (hSenderID.compareTo(MIN_HASH) >= 0 && hSenderID.compareTo(hServerID) < 0) && hPredID.compareTo(hServerID) > 0) {
+                                    || (hPredID.compareTo(hServerID) > 0 && (hSenderID.compareTo(hPredID) > 0 ||hSenderID.compareTo(hServerID) < 0))){
 
-                            Log.d(TAG, "doInBackground: Received request for adding node in between: " + predPort + " and " + serverPort + " for " + senderPort);
+
+                                Log.d(TAG, "doInBackground: Received request for adding node in between: " + predPort + " and " + serverPort + " for " + senderPort);
 
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put(MSG_REQUEST_TYPE, UPDATE_BOTH);
